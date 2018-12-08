@@ -8,7 +8,7 @@ class Person {
 
 public:
     Person(Person &other);
-    Person(char full_name[32], unsigned int id,unsigned int age);
+    Person(const char full_name[32], unsigned int id,unsigned char age);
     char* get_full_name();
 
 private:

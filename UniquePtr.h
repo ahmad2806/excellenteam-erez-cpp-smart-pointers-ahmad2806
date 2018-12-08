@@ -32,10 +32,13 @@ private:
 };
 
 template<typename T>
-UniquePtr<T>::UniquePtr(T *ptr): m_ptr(ptr) {}
+UniquePtr<T>::UniquePtr(T *ptr): m_ptr(ptr) {
+    std::cout << "UniquePtr    " << m_ptr << std::endl;
+}
 
 template<typename T>
 UniquePtr<T>::~UniquePtr() {
+    std::cout << "~UniquePtr    " << m_ptr << std::endl;
     delete m_ptr;
 }
 
@@ -56,6 +59,8 @@ UniquePtr<T>::operator bool() const {
 
 template<typename T>
 UniquePtr<T> &UniquePtr<T>::operator=(T *other) {
+    std::cout << "Equal     " << m_ptr << std::endl;
+
     delete m_ptr;
     m_ptr = other;
     return *this;
