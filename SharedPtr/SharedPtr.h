@@ -42,7 +42,8 @@ private:
 template<typename T>
 SharedPtr<T>::SharedPtr(T *ptr): m_ptr(ptr), m_counter(new size_t(1)) {}
 
-void check_and_delete(){
+template<typename T>
+void SharedPtr<T>::check_and_delete(){
     --(*m_counter);
     if (!*m_counter) {
         delete m_ptr;
