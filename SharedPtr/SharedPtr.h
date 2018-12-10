@@ -115,111 +115,67 @@ SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
 }
 
 
-TEST(SharedPointerBasicTests, AddressTest
-) {
-int *p = new int;
-SharedPtr<int> tmp_ptr(p);
-ASSERT_TRUE (p
-== tmp_ptr.
-
-get()
-
-);
+TEST(SharedPointerBasicTests, AddressTest) {
+    int *p = new int;
+    SharedPtr<int> tmp_ptr(p);
+    ASSERT_TRUE (p== tmp_ptr.get());
 }
 
-TEST(SharedPointerBasicTests, ArrowOperatorTest
-) {
-SharedPtr<std::string> tmp_ptr(new std::string);
-*
-tmp_ptr = "testing";
-ASSERT_TRUE (tmp_ptr
-->compare("testing") == 0);
+TEST(SharedPointerBasicTests, ArrowOperatorTest) {
+    SharedPtr<std::string> tmp_ptr(new std::string);
+    *tmp_ptr = "testing";
+    ASSERT_TRUE (tmp_ptr->compare("testing") == 0);
 }
 
-TEST(SharedPointerBasicTests, StarOperatorTest
-) {
-int *p = new int;
-*
-p = 5;
-SharedPtr<int> tmp_ptr(p);
-ASSERT_TRUE (*p
-== *tmp_ptr);
-
+TEST(SharedPointerBasicTests, StarOperatorTest) {
+    int *p = new int;
+    *p = 5;
+    SharedPtr<int> tmp_ptr(p);
+    ASSERT_TRUE (*p== *tmp_ptr);
 }
 
-TEST(SharedPointerBasicTests, BoolCastTest
-) {
-SharedPtr<std::string> tmp_ptr(new std::string);
-*
-tmp_ptr = "testing";
-
-ASSERT_TRUE(bool(tmp_ptr));
-
-SharedPtr<std::string> tmp_ptr2(new std::string);
-tmp_ptr2 = NULL;
-
-ASSERT_FALSE(bool(tmp_ptr2));
-
+TEST(SharedPointerBasicTests, BoolCastTest) {
+    SharedPtr<std::string> tmp_ptr(new std::string);
+    *tmp_ptr = "testing";
+    ASSERT_TRUE(bool(tmp_ptr));
+    SharedPtr<std::string> tmp_ptr2(new std::string);
+    tmp_ptr2 = NULL;
+    ASSERT_FALSE(bool(tmp_ptr2));
 }
 
-TEST(SharedPointerBasicTests, GetTest
-) {
-int *p = new int;
-SharedPtr<int> tmp_ptr(p);
-ASSERT_EQ (tmp_ptr
-.
-
-get(), p
-
-);
-
+TEST(SharedPointerBasicTests, GetTest) {
+    int *p = new int;
+    SharedPtr<int> tmp_ptr(p);
+    ASSERT_EQ (tmp_ptr.get(), p);
 }
 
-TEST(SharedPointerBasicTests, AssignmentFromPointerTest
-) {
-int *p = new int;
-SharedPtr<int> tmp_ptr(p);
-int *p1 = new int;
-*
-p1 = 5;
-tmp_ptr = p1;
-ASSERT_EQ (p1, tmp_ptr
-.
-
-get()
-
-);
-
+TEST(SharedPointerBasicTests, AssignmentFromPointerTest) {
+    int *p = new int;
+    SharedPtr<int> tmp_ptr(p);
+    int *p1 = new int;
+    *p1 = 5;
+    tmp_ptr = p1;
+    ASSERT_EQ (p1, tmp_ptr.get());
 }
 
-TEST(SharedPointerBasicTests, AssignmentFromSharedPointerTest
-) {
-int *p = new int;
-*
-p = 6;
-SharedPtr<int> tmp_ptr(p);
-int *p1 = new int(5);
-SharedPtr<int> tmp_ptr1(p1);
-tmp_ptr = tmp_ptr1;
-ASSERT_EQ (tmp_ptr1
-.
-
-get(), tmp_ptr
-
-.
-
-get()
-
-);
-
+TEST(SharedPointerBasicTests, AssignmentFromSharedPointerTest) {
+    int *p = new int;
+    *p = 6;
+    SharedPtr<int> tmp_ptr(p);
+    int *p1 = new int(5);
+    SharedPtr<int> tmp_ptr1(p1);
+    tmp_ptr = tmp_ptr1;
+    ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
 }
 
 TEST(SharedPointerBasicTests, CopyCtorSharedPointerTest) {
-int *p = new int;
-*p = 6;
-SharedPtr<int> tmp_ptr(p);
-SharedPtr<int> tmp_ptr1(tmp_ptr);
-ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
-
+    int *p = new int;
+    *p = 6;
+    SharedPtr<int> tmp_ptr(p);
+    SharedPtr<int> tmp_ptr1(tmp_ptr);
+    ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
 }
+
+// g++ -ansi -pedantic -Wall -g -Wconversion -std=c++98 sharedPtr_test.cpp -lgtest -lgtest_main -pthread -o testStack
+
 #endif //EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_SHAREDPTR_H
