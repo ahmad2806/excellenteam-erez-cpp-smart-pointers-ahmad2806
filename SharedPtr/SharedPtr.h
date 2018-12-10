@@ -31,6 +31,8 @@ public:
     SharedPtr &operator=(SharedPtr const &);
 
 private:
+    inline void check_and_delete();
+
     T *m_ptr;
     size_t *m_counter;
 
@@ -38,20 +40,18 @@ private:
 
 
 template<typename T>
-SharedPtr<T>::SharedPtr(T *ptr): m_ptr(ptr) {
-    m_counter = new size_t;
-    *m_counter = 1;
-}
+SharedPtr<T>::SharedPtr(T *ptr): m_ptr(ptr), m_counter(new size_t(1)) {}
 
-template<typename T>
-SharedPtr<T>::~SharedPtr() {
+void check_and_delete(){
     --(*m_counter);
-
     if (!*m_counter) {
         delete m_ptr;
         delete m_counter;
     }
-
+}
+template<typename T>
+SharedPtr<T>::~SharedPtr() {
+    this->check_and_delete();
 }
 
 template<typename T>
@@ -72,11 +72,7 @@ SharedPtr<T>::operator bool() const {
 template<typename T>
 SharedPtr<T> &SharedPtr<T>::operator=(T *ptr) {
     if (m_ptr != ptr) {
-        --(*m_counter);
-        if (!*m_counter) {
-            delete m_ptr;
-            delete m_counter;
-        }
+        this->check_and_delete();
         m_counter = new size_t;
         *m_counter = 1;
         m_ptr = ptr;
@@ -84,7 +80,18 @@ SharedPtr<T> &SharedPtr<T>::operator=(T *ptr) {
     return *this;
 
 }
+template<typename T>
+SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
+    this->check_and_delete();
 
+
+    m_counter = other.m_counter;
+    m_ptr = other.m_ptr;
+    ++(*m_counter);
+
+    return *this;
+
+}
 template<typename T>
 T *SharedPtr<T>::get() const {
     return m_ptr;
@@ -97,22 +104,7 @@ SharedPtr<T>::SharedPtr(SharedPtr const &other) {
     ++(*m_counter);
 }
 
-template<typename T>
-SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
-    --(*m_counter);
 
-    if (!*m_counter) {
-        delete m_ptr;
-        delete m_counter;
-    }
-
-    m_counter = other.m_counter;
-    m_ptr = other.m_ptr;
-    ++(*m_counter);
-
-    return *this;
-
-}
 
 
 TEST(SharedPointerBasicTests, AddressTest) {
