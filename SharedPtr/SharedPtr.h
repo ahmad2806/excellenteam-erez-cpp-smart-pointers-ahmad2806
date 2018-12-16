@@ -24,9 +24,14 @@ public:
 
     SharedPtr<T> &operator=(T *t);
 
+    template<typename U>
+    SharedPtr<T> &operator=(U *t);
+
     T *get() const;
 
     SharedPtr(SharedPtr const &);
+
+    // didn't know why we really need another copy constructor ... we can still use the same one
 
     SharedPtr &operator=(SharedPtr const &);
 
@@ -40,16 +45,18 @@ private:
 
 
 template<typename T>
-SharedPtr<T>::SharedPtr(T *ptr): m_ptr(ptr), m_counter(new size_t(1)) {}
+SharedPtr<T>::SharedPtr(T *ptr) try : m_counter(new size_t(1)), m_ptr(ptr) {}
+catch (std::bad_alloc& bad_allocate){ throw bad_allocate;}
 
 template<typename T>
-void SharedPtr<T>::check_and_delete(){
+void SharedPtr<T>::check_and_delete() {
     --(*m_counter);
     if (!*m_counter) {
         delete m_ptr;
         delete m_counter;
     }
 }
+
 template<typename T>
 SharedPtr<T>::~SharedPtr() {
     this->check_and_delete();
@@ -74,13 +81,25 @@ template<typename T>
 SharedPtr<T> &SharedPtr<T>::operator=(T *ptr) {
     if (m_ptr != ptr) {
         this->check_and_delete();
-        m_counter = new size_t;
-        *m_counter = 1;
+        m_counter = new size_t(1);
         m_ptr = ptr;
     }
     return *this;
 
 }
+
+template<typename T>
+template<typename U>
+SharedPtr<T> &SharedPtr<T>::operator=(U *ptr) {
+    if (m_ptr != ptr) {
+        this->check_and_delete();
+        m_counter = new size_t(1);
+        m_ptr = ptr;
+    }
+    return *this;
+
+}
+
 template<typename T>
 SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
     this->check_and_delete();
@@ -93,6 +112,7 @@ SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
     return *this;
 
 }
+
 template<typename T>
 T *SharedPtr<T>::get() const {
     return m_ptr;
@@ -100,12 +120,12 @@ T *SharedPtr<T>::get() const {
 
 template<typename T>
 SharedPtr<T>::SharedPtr(SharedPtr const &other) {
+    if (*this)
+        this->check_and_delete();
     m_counter = other.m_counter;
     m_ptr = other.m_ptr;
     ++(*m_counter);
 }
-
-
 
 
 TEST(SharedPointerBasicTests, AddressTest) {
@@ -128,7 +148,7 @@ TEST(SharedPointerBasicTests, StarOperatorTest) {
 }
 
 TEST(SharedPointerBasicTests, BoolCastTest) {
-    SharedPtr<std::string> tmp_ptr(new std::string);
+SharedPtr<std::string> tmp_ptr(new std::string);
     *tmp_ptr = "testing";
     ASSERT_TRUE(bool(tmp_ptr));
     SharedPtr<std::string> tmp_ptr2(new std::string);
@@ -168,7 +188,6 @@ TEST(SharedPointerBasicTests, CopyCtorSharedPointerTest) {
     SharedPtr<int> tmp_ptr1(tmp_ptr);
     ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
 }
-
 // g++ -ansi -pedantic -Wall -g -Wconversion -std=c++98 sharedPtr_test.cpp -lgtest -lgtest_main -pthread -o testStack
 
 #endif //EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_SHAREDPTR_H

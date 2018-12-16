@@ -24,7 +24,7 @@ public:
     T *get() const;
 
 private:
-    // Prevent coping
+    // Prevent copying
     UniquePtr(UniquePtr const &);
 
     UniquePtr &operator=(UniquePtr const &);
@@ -79,3 +79,4 @@ template<typename T>
 UniquePtr<T> &UniquePtr<T>::operator=(UniquePtr const &) {}
 
 #endif //EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_UNIQUEPTR_H
+
