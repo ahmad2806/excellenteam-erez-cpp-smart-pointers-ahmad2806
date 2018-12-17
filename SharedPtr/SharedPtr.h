@@ -1,7 +1,3 @@
-//
-// Created by ahmad on 09/12/2018.
-//
-
 #ifndef EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_SHAREDPTR_H
 
 #define EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_SHAREDPTR_H
@@ -22,22 +18,18 @@ public:
 
     operator bool() const;
 
-    SharedPtr<T> &operator=(T *t);
-
     template<typename U>
     SharedPtr<T> &operator=(U *t);
+
+    SharedPtr<T> &operator=(T *t);
 
     T *get() const;
 
     SharedPtr(SharedPtr const &);
 
-    // didn't know why we really need another copy constructor ... we can still use the same one
-
     SharedPtr &operator=(SharedPtr const &);
 
 private:
-    inline void check_and_delete();
-
     T *m_ptr;
     size_t *m_counter;
 
@@ -45,21 +37,30 @@ private:
 
 
 template<typename T>
-SharedPtr<T>::SharedPtr(T *ptr) try : m_counter(new size_t(1)), m_ptr(ptr) {}
-catch (std::bad_alloc& bad_allocate){ throw bad_allocate;}
-
+SharedPtr<T>::SharedPtr(T *ptr): m_ptr(ptr) {
+    m_counter = new size_t;
+    *m_counter = 1;
+}
 template<typename T>
-void SharedPtr<T>::check_and_delete() {
+template<typename U>
+SharedPtr<T> &SharedPtr<T>::operator=(U *ptr) {
+    if (m_ptr != ptr) {
+        this->check_and_delete();
+        m_counter = new size_t(1);
+        m_ptr = ptr;
+    }
+    return *this;
+
+}
+template<typename T>
+SharedPtr<T>::~SharedPtr() {
     --(*m_counter);
+
     if (!*m_counter) {
         delete m_ptr;
         delete m_counter;
     }
-}
 
-template<typename T>
-SharedPtr<T>::~SharedPtr() {
-    this->check_and_delete();
 }
 
 template<typename T>
@@ -80,35 +81,15 @@ SharedPtr<T>::operator bool() const {
 template<typename T>
 SharedPtr<T> &SharedPtr<T>::operator=(T *ptr) {
     if (m_ptr != ptr) {
-        this->check_and_delete();
-        m_counter = new size_t(1);
+        --(*m_counter);
+        if (!*m_counter) {
+            delete m_ptr;
+            delete m_counter;
+        }
+        m_counter = new size_t;
+        *m_counter = 1;
         m_ptr = ptr;
     }
-    return *this;
-
-}
-
-template<typename T>
-template<typename U>
-SharedPtr<T> &SharedPtr<T>::operator=(U *ptr) {
-    if (m_ptr != ptr) {
-        this->check_and_delete();
-        m_counter = new size_t(1);
-        m_ptr = ptr;
-    }
-    return *this;
-
-}
-
-template<typename T>
-SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
-    this->check_and_delete();
-
-
-    m_counter = other.m_counter;
-    m_ptr = other.m_ptr;
-    ++(*m_counter);
-
     return *this;
 
 }
@@ -120,74 +101,134 @@ T *SharedPtr<T>::get() const {
 
 template<typename T>
 SharedPtr<T>::SharedPtr(SharedPtr const &other) {
-    if (*this)
-        this->check_and_delete();
     m_counter = other.m_counter;
     m_ptr = other.m_ptr;
     ++(*m_counter);
 }
 
+template<typename T>
+SharedPtr<T> &SharedPtr<T>::operator=(SharedPtr const &other) {
+    --(*m_counter);
 
-TEST(SharedPointerBasicTests, AddressTest) {
-    int *p = new int;
-    SharedPtr<int> tmp_ptr(p);
-    ASSERT_TRUE (p== tmp_ptr.get());
+    if (!*m_counter) {
+        delete m_ptr;
+        delete m_counter;
+    }
+
+    m_counter = other.m_counter;
+    m_ptr = other.m_ptr;
+    ++(*m_counter);
+
+    return *this;
+
 }
 
-TEST(SharedPointerBasicTests, ArrowOperatorTest) {
-    SharedPtr<std::string> tmp_ptr(new std::string);
-    *tmp_ptr = "testing";
-    ASSERT_TRUE (tmp_ptr->compare("testing") == 0);
+
+TEST(SharedPointerBasicTests, AddressTest
+) {
+int *p = new int;
+SharedPtr<int> tmp_ptr(p);
+ASSERT_TRUE (p
+== tmp_ptr.
+
+get()
+
+);
 }
 
-TEST(SharedPointerBasicTests, StarOperatorTest) {
-    int *p = new int;
-    *p = 5;
-    SharedPtr<int> tmp_ptr(p);
-    ASSERT_TRUE (*p== *tmp_ptr);
-}
-
-TEST(SharedPointerBasicTests, BoolCastTest) {
+TEST(SharedPointerBasicTests, ArrowOperatorTest
+) {
 SharedPtr<std::string> tmp_ptr(new std::string);
-    *tmp_ptr = "testing";
-    ASSERT_TRUE(bool(tmp_ptr));
-    SharedPtr<std::string> tmp_ptr2(new std::string);
-    tmp_ptr2 = NULL;
-    ASSERT_FALSE(bool(tmp_ptr2));
+*
+tmp_ptr = "testing";
+ASSERT_TRUE (tmp_ptr
+->compare("testing") == 0);
 }
 
-TEST(SharedPointerBasicTests, GetTest) {
-    int *p = new int;
-    SharedPtr<int> tmp_ptr(p);
-    ASSERT_EQ (tmp_ptr.get(), p);
+TEST(SharedPointerBasicTests, StarOperatorTest
+) {
+int *p = new int;
+*
+p = 5;
+SharedPtr<int> tmp_ptr(p);
+ASSERT_TRUE (*p
+== *tmp_ptr);
+
 }
 
-TEST(SharedPointerBasicTests, AssignmentFromPointerTest) {
-    int *p = new int;
-    SharedPtr<int> tmp_ptr(p);
-    int *p1 = new int;
-    *p1 = 5;
-    tmp_ptr = p1;
-    ASSERT_EQ (p1, tmp_ptr.get());
+TEST(SharedPointerBasicTests, BoolCastTest
+) {
+SharedPtr<std::string> tmp_ptr(new std::string);
+*
+tmp_ptr = "testing";
+
+ASSERT_TRUE(bool(tmp_ptr));
+
+SharedPtr<std::string> tmp_ptr2(new std::string);
+tmp_ptr2 = NULL;
+
+ASSERT_FALSE(bool(tmp_ptr2));
+
 }
 
-TEST(SharedPointerBasicTests, AssignmentFromSharedPointerTest) {
-    int *p = new int;
-    *p = 6;
-    SharedPtr<int> tmp_ptr(p);
-    int *p1 = new int(5);
-    SharedPtr<int> tmp_ptr1(p1);
-    tmp_ptr = tmp_ptr1;
-    ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
+TEST(SharedPointerBasicTests, GetTest
+) {
+int *p = new int;
+SharedPtr<int> tmp_ptr(p);
+ASSERT_EQ (tmp_ptr
+.
+
+get(), p
+
+);
+
+}
+
+TEST(SharedPointerBasicTests, AssignmentFromPointerTest
+) {
+int *p = new int;
+SharedPtr<int> tmp_ptr(p);
+int *p1 = new int;
+*
+p1 = 5;
+tmp_ptr = p1;
+ASSERT_EQ (p1, tmp_ptr
+.
+
+get()
+
+);
+
+}
+
+TEST(SharedPointerBasicTests, AssignmentFromSharedPointerTest
+) {
+int *p = new int;
+*
+p = 6;
+SharedPtr<int> tmp_ptr(p);
+int *p1 = new int(5);
+SharedPtr<int> tmp_ptr1(p1);
+tmp_ptr = tmp_ptr1;
+ASSERT_EQ (tmp_ptr1
+.
+
+get(), tmp_ptr
+
+.
+
+get()
+
+);
+
 }
 
 TEST(SharedPointerBasicTests, CopyCtorSharedPointerTest) {
-    int *p = new int;
-    *p = 6;
-    SharedPtr<int> tmp_ptr(p);
-    SharedPtr<int> tmp_ptr1(tmp_ptr);
-    ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
-}
-// g++ -ansi -pedantic -Wall -g -Wconversion -std=c++98 sharedPtr_test.cpp -lgtest -lgtest_main -pthread -o testStack
+int *p = new int;
+*p = 6;
+SharedPtr<int> tmp_ptr(p);
+SharedPtr<int> tmp_ptr1(tmp_ptr);
+ASSERT_EQ (tmp_ptr1.get(), tmp_ptr.get());
 
+}
 #endif //EXCELLENTEAM_EREZ_CPP_SMART_POINTERS_AHMAD2806_SHAREDPTR_H
